@@ -9,9 +9,22 @@ import { PostsModule } from './modules/posts/posts.module';
 import { PostsTagsModule } from './modules/posts-tags/posts-tags.module';
 import { TagsModule } from './modules/tags/tags.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [UsersModule, CategoriesModule, CategoriesTopicsModule, TopicsModule, PostsModule, PostsTagsModule, TagsModule, CommentsModule],
+  imports: [
+    MongooseModule.forRoot(
+      "mongodb+srv://admin:admin@cluster0.s3spylg.mongodb.net/?retryWrites=true&w=majority"
+    ),
+    UsersModule,
+    CategoriesModule,
+    CategoriesTopicsModule,
+    TopicsModule,
+    PostsModule,
+    PostsTagsModule,
+    TagsModule,
+    CommentsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
