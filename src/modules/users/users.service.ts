@@ -1,26 +1,81 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { ReturnModelType } from '@typegoose/typegoose';
+import { User } from './models/users.model';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+
+  constructor(
+    @InjectModel(User.name)
+    private userModel: ReturnModelType<typeof User>,
+  ) {}
+
+  async create(createUserDto: User) {
+    try {
+      const createUser = new this.userModel(createUserDto);
+      return await createUser
+        .save()
+        .then((res) => {
+          return res;
+        })
+        .catch((err) => {
+          return err;
+        });
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll() {
+    try {
+      return await this.userModel.find({});
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    try {
+      return await this.userModel.findOne({_id:id});
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: User) {
+    try {
+      // console.log(updateEmployeeDto);
+      let { fullName,email,gender,birthDate,description,userName,password } =
+        updateUserDto;
+      let user = new User();
+      user.fullName = fullName ? fullName : "";
+      user.email = email ? email : "";
+      user.gender = gender ? gender : 0;
+      user.birthDate = birthDate ? birthDate : new Date();
+      user.description = description ? description : "";
+      user.userName = userName ? userName : "";
+      //GENRATE PASSWORD
+      // user.password = password ? password : "";
+
+      return await this.userModel
+        .updateOne({ _id: id }, user)
+        .then((res) => {
+          return res;
+        })
+        .catch((err) => {
+          return err;
+        });
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    try {
+      return await this.userModel.deleteOne({_id:id});
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 }

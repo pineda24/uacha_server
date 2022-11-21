@@ -9,9 +9,9 @@ export class User{
 
     @prop({ required: [true, 'email is required'],unique: true })
     @AutoMap()
-    email: string;
+    email: String;
 
-    @prop({ required: [true, 'gender is required'],default:0 })
+    @prop({ required: [true, 'gender is required'], validate: /^[0-1]{1}$/, default:0 })
     @AutoMap()
     gender: number;
 
