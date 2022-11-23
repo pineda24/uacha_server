@@ -1,9 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { ReturnModelType } from '@typegoose/typegoose';
 import { CreateCategoriesTopicDto } from './dto/create-categories-topic.dto';
 import { UpdateCategoriesTopicDto } from './dto/update-categories-topic.dto';
+import { CategoryTopic } from './models/categoryTopic.model';
 
 @Injectable()
 export class CategoriesTopicsService {
+
+  constructor(
+    @InjectModel(CategoryTopic.name)
+    private categoryTopicModel: ReturnModelType<typeof CategoryTopic>,
+  ) {}
+
   create(createCategoriesTopicDto: CreateCategoriesTopicDto) {
     return 'This action adds a new categoriesTopic';
   }

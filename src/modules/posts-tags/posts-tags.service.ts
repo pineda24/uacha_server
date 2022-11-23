@@ -1,9 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { ReturnModelType } from '@typegoose/typegoose';
 import { CreatePostsTagDto } from './dto/create-posts-tag.dto';
 import { UpdatePostsTagDto } from './dto/update-posts-tag.dto';
+import { PostTag } from './models/postTag.model';
 
 @Injectable()
 export class PostsTagsService {
+
+  constructor(
+    @InjectModel( PostTag.name )
+    private categoryTopicModel: ReturnModelType<typeof PostTag>,
+  ) {}
+
   create(createPostsTagDto: CreatePostsTagDto) {
     return 'This action adds a new postsTag';
   }
