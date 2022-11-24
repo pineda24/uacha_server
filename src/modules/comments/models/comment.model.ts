@@ -36,6 +36,14 @@ export class Comment{
     @AutoMap()
     userld: Ref<User>;
 
+    @prop({ required: [false,'upVotes is required'], ref: () => User, default: [] })
+    @AutoMap()
+    upVotes: Ref<User>[];
+
+    @prop({ required: [false,'downVotes is required'], ref: () => User, default: [] })
+    @AutoMap()
+    downVotes: Ref<User>[];
+
     static get model(): ReturnModelType<typeof Comment> {
         return getModelForClass(Comment);
     }

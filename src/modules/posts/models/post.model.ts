@@ -34,7 +34,7 @@ export class PostMD{
     @AutoMap()
     userld: Ref<User>;
 
-    @prop({ required: [false,'tags is required'], ref: () => User, default: [] })
+    @prop({ required: [false,'tags is required'], ref: () => Tag, default: [] })
     @AutoMap()
     tags: Ref<Tag>[];
 

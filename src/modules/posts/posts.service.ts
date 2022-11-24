@@ -6,6 +6,7 @@ import { Tag } from '../tags/models/tag.model';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostMD } from './models/post.model';
+import { User } from '../users/models/users.model';
 
 @Injectable()
 export class PostsService {
@@ -14,6 +15,8 @@ export class PostsService {
     private postModel: ReturnModelType<typeof PostMD>,
     @InjectModel(Tag.name)
     private tagsModel: ReturnModelType<typeof Tag>,
+    @InjectModel(User.name)
+    private userModel: ReturnModelType<typeof User>,
     private commentService: CommentsService,
   ) {}
 

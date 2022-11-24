@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PostMD } from './models/post.model';
 import { Tag } from '../tags/models/tag.model';
 import { CommentsModule } from '../comments/comments.module';
+import { User } from '../users/models/users.model';
 
 @Module({
   imports:[
@@ -13,6 +14,9 @@ import { CommentsModule } from '../comments/comments.module';
     ]),
     MongooseModule.forFeature([
       { name: Tag.modelName, schema: Tag.model.schema },
+    ]),
+    MongooseModule.forFeature([
+      { name: User.modelName, schema: User.model.schema },
     ]),
     CommentsModule
   ],

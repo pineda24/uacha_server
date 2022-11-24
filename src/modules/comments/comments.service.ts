@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ReturnModelType } from '@typegoose/typegoose';
+import { User } from '../users/models/users.model';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { Comment } from './models/comment.model';
@@ -10,6 +11,8 @@ export class CommentsService {
   constructor(
     @InjectModel(Comment.name)
     private commentModel: ReturnModelType<typeof Comment>,
+    @InjectModel(User.name)
+    private userModel: ReturnModelType<typeof User>,
   ) {}
 
   async create(createCommentDto: Comment) {
@@ -95,12 +98,16 @@ export class CommentsService {
       // Add list Comments
       for (let i = 0; i < listComments.length; i++) {
         listComments[i].comments = [];
-        listComments[i].comments =  listComments.filter((obj) => (obj.commentFather ? obj.commentFather.toString() : null) == listComments[i]._id.toString());
+        listComments[i].comments = listComments.filter(
+          (obj) =>
+            (obj.commentFather ? obj.commentFather.toString() : null) ==
+            listComments[i]._id.toString(),
+        );
       }
 
       // Delete subComments
-      listComments = listComments.filter((obj) => obj.commentFather == null)
-      
+      listComments = listComments.filter((obj) => obj.commentFather == null);
+
       return listComments;
     } catch (e) {
       throw new InternalServerErrorException(e);
@@ -129,6 +136,120 @@ export class CommentsService {
         { _id: commentId },
         { $pull: { comments: comment } },
         { upsert: true, new: true },
+      );
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async addVotesUp(objectAdd: any) {
+    try {
+      const { commentld, userld } = objectAdd;
+      let objVoteUser = await this.commentModel.aggregate([
+        {
+          $match: {
+            $expr: {
+              $eq: ['$_id', { $toObjectId: commentld }],
+            },
+          },
+        },
+        {
+          $project: {
+            hasVoteUp: {
+              $in: [{ $toObjectId: userld }, '$upVotes'],
+            },
+            hasDownVotes: {
+              $in: [{ $toObjectId: userld }, '$downVotes'],
+            },
+          },
+        },
+      ]);
+      if (objVoteUser && objVoteUser[0].hasDownVotes) {
+        await this.removeDownVotes(objectAdd);
+      }
+      if (objVoteUser && objVoteUser[0].hasVoteUp) {
+        return await this.commentModel.findOne({ _id:commentld });
+      } else {
+        let user: any = await this.userModel.findOne({ _id: userld });
+        return await this.commentModel.findByIdAndUpdate(
+          { _id: commentld },
+          { $push: { upVotes: user } },
+          { upsert: true, new: true },
+        );
+      }
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async removeVotesUp(objectAdd: any) {
+    try {
+      const { commentld, userld } = objectAdd;
+      return await this.commentModel.findByIdAndUpdate(
+        { _id: commentld },
+        { $pull: { upVotes: userld } },
+        { upsert: true, new: true },
+      );
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async addDownVotes(objectAdd: any) {
+    try {
+      const { commentld, userld } = objectAdd;
+      let objVoteUser = await this.commentModel.aggregate([
+        {
+          $match: {
+            $expr: {
+              $eq: ['$_id', { $toObjectId: commentld }],
+            },
+          },
+        },
+        {
+          $project: {
+            hasVoteUp: {
+              $in: [{ $toObjectId: userld }, '$upVotes'],
+            },
+            hasDownVotes: {
+              $in: [{ $toObjectId: userld }, '$downVotes'],
+            },
+          },
+        },
+      ]);
+      if (objVoteUser && objVoteUser[0].hasVoteUp) {
+        await this.removeVotesUp(objectAdd);
+      }
+      if (objVoteUser && objVoteUser[0].hasDownVotes) {
+        return await this.commentModel.findOne({ _id:commentld });
+      } else {
+        let user: any = await this.userModel.findOne({ _id: userld });
+        return await this.commentModel.findByIdAndUpdate(
+          { _id: commentld },
+          { $push: { downVotes: user } },
+          { upsert: true, new: true },
+        );
+      }
+      // let user: any = await this.userModel.findOne({ _id: userld });
+      // return await this.commentModel.findByIdAndUpdate(
+      //   { _id: commentld },
+      //   { $push: { downVotes: user } },
+      //   { upsert: true, new: true },
+      // );
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async removeDownVotes(objectAdd: any) {
+    try {
+      const { commentld, userld } = objectAdd;
+      let user: any = await this.userModel.findOne({ _id: userld });
+      console.log(user);
+      return await this.commentModel.findByIdAndUpdate(
+        { _id: commentld },
+        { $pull: { downVotes: user._id } },
+        // { upsert: true, new: true },
       );
     } catch (e) {
       throw new InternalServerErrorException(e);

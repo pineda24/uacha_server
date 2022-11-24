@@ -22,6 +22,30 @@ export class CommentsController {
     return this.commentsService.addComment(objectTagPost);
   }
 
+  // VOTES UP
+
+  @Post('addVotesUp')
+  addVotesUp(@Body() objectTagPost: any) {
+    return this.commentsService.addVotesUp(objectTagPost);
+  }
+
+  @Post('removeVotesUp')
+  removeVotesUp(@Body() objectTagPost: any) {
+    return this.commentsService.removeVotesUp(objectTagPost);
+  }
+
+  // VOTES DOWN
+
+  @Post('addDownVotes')
+  addDownVotes(@Body() objectTagPost: any) {
+    return this.commentsService.addDownVotes(objectTagPost);
+  }
+
+  @Post('removeDownVotes')
+  removeDownVotes(@Body() objectTagPost: any) {
+    return this.commentsService.removeDownVotes(objectTagPost);
+  }
+
   @Get('findbyPostId/:id')
   findbyPostId(@Param('id') id: string) {
     return this.commentsService.findbyPostId(id);
