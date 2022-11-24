@@ -2,13 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PostsTagsService } from './posts-tags.service';
 import { CreatePostsTagDto } from './dto/create-posts-tag.dto';
 import { UpdatePostsTagDto } from './dto/update-posts-tag.dto';
+import { PostTag } from './models/postTag.model';
 
 @Controller('posts-tags')
 export class PostsTagsController {
   constructor(private readonly postsTagsService: PostsTagsService) {}
 
   @Post()
-  create(@Body() createPostsTagDto: CreatePostsTagDto) {
+  create(@Body() createPostsTagDto: PostTag) {
     return this.postsTagsService.create(createPostsTagDto);
   }
 

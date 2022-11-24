@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ReturnModelType } from '@typegoose/typegoose';
 import { CreateTagDto } from './dto/create-tag.dto';
@@ -10,11 +10,23 @@ export class TagsService {
 
   constructor(
     @InjectModel( Tag.name )
-    private categoryTopicModel: ReturnModelType<typeof Tag>,
+    private tagsModel: ReturnModelType<typeof Tag>,
   ) {}
 
-  create(createTagDto: CreateTagDto) {
-    return 'This action adds a new tag';
+  async create(createTagDto: Tag) {
+    try {
+      const createTag = new this.tagsModel(createTagDto);
+      return await createTag
+        .save()
+        .then((res) => {
+          return res;
+        })
+        .catch((err) => {
+          return err;
+        });
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
   findAll() {

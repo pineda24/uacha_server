@@ -13,8 +13,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
+    // MongooseModule.forRoot(
+    //   "mongodb+srv://admin:admin@cluster0.s3spylg.mongodb.net/?retryWrites=true&w=majority"
+    // ),
     MongooseModule.forRoot(
-      "mongodb+srv://admin:admin@cluster0.s3spylg.mongodb.net/?retryWrites=true&w=majority"
+      "mongodb://localhost:27017/uacha",
+      {
+        useNewUrlParser: true,
+      }
     ),
     UsersModule,
     CategoriesModule,

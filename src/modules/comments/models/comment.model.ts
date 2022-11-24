@@ -3,7 +3,7 @@ import { ReturnModelType, prop, getModelForClass, types, Ref } from '@typegoose/
 import { AutoMap } from '@nartc/automapper';
 import { Category } from 'src/modules/categories/models/category.model';
 import { User } from 'src/modules/users/models/users.model';
-import { Post } from 'src/modules/posts/models/post.model';
+import { PostMD } from 'src/modules/posts/models/post.model';
 import { Tag } from 'src/modules/tags/models/tag.model';
 
 export class Comment{
@@ -20,9 +20,9 @@ export class Comment{
     @AutoMap()
     votes: number;
 
-    @prop({ required: [true,'postld is required'], ref: () => Post, default:null })
+    @prop({ required: [true,'postld is required'], ref: () => PostMD, default:null })
     @AutoMap()
-    postld: Ref<Post>;
+    postld: Ref<PostMD>;
 
     @prop({ required: [false,'commentld is required'], ref: () => Comment, default:null })
     @AutoMap()

@@ -4,7 +4,7 @@ import { AutoMap } from '@nartc/automapper';
 import { Category } from 'src/modules/categories/models/category.model';
 import { User } from 'src/modules/users/models/users.model';
 
-export class Post{
+export class PostMD{
     @prop({ required: [true,'title is required'] })
     @AutoMap()
     title: String;
@@ -23,7 +23,7 @@ export class Post{
 
     @prop({ required: [false,'multimedia is required'] })
     @AutoMap()
-    multimedia: BinaryData;
+    multimedia: String;
 
     @prop({ required: [false,'categoryld is required'], ref: () => Category, default: null })
     @AutoMap()
@@ -33,8 +33,8 @@ export class Post{
     @AutoMap()
     userld: Ref<User>;
 
-    static get model(): ReturnModelType<typeof Post> {
-        return getModelForClass(Post);
+    static get model(): ReturnModelType<typeof PostMD> {
+        return getModelForClass(PostMD);
     }
 
     static get modelName(): string {
