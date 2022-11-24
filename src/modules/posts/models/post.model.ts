@@ -18,7 +18,7 @@ export class PostMD{
     @AutoMap()
     date: Date;
 
-    @prop({ required: [true,'votes is required'],default: 0, validate: /^[0-9]*$/ })
+    @prop({ required: [true,'votes is required'], default: 0, validate: /^[0-9]*$/ })
     @AutoMap()
     votes: number;
 

@@ -6,6 +6,7 @@ import { PostMD } from './models/post.model';
 import { Tag } from '../tags/models/tag.model';
 import { CommentsModule } from '../comments/comments.module';
 import { User } from '../users/models/users.model';
+import { TagsModule } from '../tags/tags.module';
 
 @Module({
   imports:[
@@ -18,7 +19,8 @@ import { User } from '../users/models/users.model';
     MongooseModule.forFeature([
       { name: User.modelName, schema: User.model.schema },
     ]),
-    CommentsModule
+    CommentsModule,
+    TagsModule
   ],
   controllers: [PostsController],
   providers: [PostsService],

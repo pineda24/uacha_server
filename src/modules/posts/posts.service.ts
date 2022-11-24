@@ -7,6 +7,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostMD } from './models/post.model';
 import { User } from '../users/models/users.model';
+import { TagsService } from '../tags/tags.service';
 
 @Injectable()
 export class PostsService {
@@ -18,6 +19,7 @@ export class PostsService {
     @InjectModel(User.name)
     private userModel: ReturnModelType<typeof User>,
     private commentService: CommentsService,
+    private tagService: TagsService,
   ) {}
 
   async create(createPostDto: PostMD) {
@@ -38,13 +40,36 @@ export class PostsService {
 
   async addTags(objectAdd: any) {
     try {
-      const { postld, tagld } = objectAdd;
-      let tag: any = await this.tagsModel.findOne({ _id: tagld });
-      return await this.postModel.findByIdAndUpdate(
-        { _id: postld },
-        { $push: { tags: tag } },
-        { upsert: true, new: true },
-      );
+      const { postld, description } = objectAdd;
+      let tag = await this.tagsModel.findOne({ description: description });
+      if (tag == undefined || tag == null) {
+        tag = await this.tagService.create({ description: description });
+      }
+      let exist = await this.postModel.aggregate([
+        {
+          $match: {
+            $expr: {
+              $eq: ['$_id', { $toObjectId: postld }],
+            },
+          },
+        },
+        {
+          $project: {
+            tag: {
+              $in: [{ $toObjectId: tag._id }, '$tags'],
+            },
+          },
+        },
+      ]);
+      if (exist && exist.length > 0 && exist[0].tag == false) {
+        return await this.postModel.findByIdAndUpdate(
+          { _id: postld },
+          { $push: { tags: tag } },
+          { upsert: true, new: true },
+        );
+      } else {
+        return {};
+      }
     } catch (e) {
       throw new InternalServerErrorException(e);
     }

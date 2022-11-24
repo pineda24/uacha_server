@@ -11,6 +11,7 @@ import { Tag } from './models/tag.model';
     ]),
   ],
   controllers: [TagsController],
-  providers: [TagsService]
+  providers: [TagsService],
+  exports: [TagsService]
 })
 export class TagsModule {}
