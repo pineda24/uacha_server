@@ -7,9 +7,8 @@ import { Tag } from './models/tag.model';
 
 @Injectable()
 export class TagsService {
-
   constructor(
-    @InjectModel( Tag.name )
+    @InjectModel(Tag.name)
     private tagsModel: ReturnModelType<typeof Tag>,
   ) {}
 
@@ -24,6 +23,54 @@ export class TagsService {
         .catch((err) => {
           return err;
         });
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async findTagsStadistics() {
+    try {
+      let objTags = {
+        tags: [],
+        popular: [],
+        total: 0,
+      };
+      objTags.tags = await this.tagsModel.distinct('description');
+      let popular =  await this.tagsModel.aggregate([
+        {
+          $lookup: {
+            from: 'postmds',
+            localField: '_id',
+            foreignField: 'tags',
+            as: 'total',
+          },
+        },
+        {
+          $project: {
+            tag: '$description',
+            total: {
+              $cond: {
+                if: {
+                  $and: [{ $gt: [{ $size: '$total' }, 0] }],
+                },
+                then: { $size: '$total' },
+                else: 0,
+              },
+            },
+          },
+        },
+        {
+          $sort: {
+            total: -1,
+          },
+        },
+      ]);
+      let auxArray = popular.filter((month,idx) => idx < 3);
+      objTags.popular = auxArray;
+      for (let i = 0; i < auxArray.length; i++) {
+        objTags.total += auxArray[i].total;
+      }
+      return objTags;
     } catch (e) {
       throw new InternalServerErrorException(e);
     }

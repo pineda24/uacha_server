@@ -18,6 +18,11 @@ export class TagsController {
     return this.tagsService.findAll();
   }
 
+  @Get('findTagsStadistics')
+  findTagsStadistics() {
+    return this.tagsService.findTagsStadistics();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tagsService.findOne(+id);

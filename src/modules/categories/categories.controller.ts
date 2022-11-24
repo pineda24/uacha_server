@@ -13,9 +13,19 @@ export class CategoriesController {
     return this.categoriesService.create(createCategoryDto);
   }
 
+  @Post('addTopic')
+  addTags(@Body() objectCategorieTopic: any) {
+    return this.categoriesService.addTopic(objectCategorieTopic);
+  }
+
   @Get()
   findAll() {
     return this.categoriesService.findAll();
+  }
+
+  @Get('findAllWithTopics')
+  findAllWithTopics() {
+    return this.categoriesService.findAllWithTopics();
   }
 
   @Get(':id')
