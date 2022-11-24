@@ -31,16 +31,52 @@ export class PostsService {
     }
   }
 
+  async addTags(objectAdd: any) {
+    try {
+      const { postld, tagld } = objectAdd;
+      let tag: any = await this.tagsModel.findOne({ _id: tagld });
+      return await this.postModel.findByIdAndUpdate(
+        { _id: postld },
+        { $push: { tags: tag } },
+        { upsert: true, new: true },
+      );
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async removeTags(objectRemove: any) {
+    try {
+      const { postld, tagld } = objectRemove;
+      let tag: any = await this.tagsModel.findOne({ _id: tagld });
+      return await this.postModel.findByIdAndUpdate(
+        { _id: postld },
+        { $pull: { tags: tag } },
+        { upsert: true, new: true },
+      );
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
   async findAll() {
     try {
       // return await this.postModel.find({});
-      let post:any = await this.postModel.aggregate([
+      return await this.postModel.aggregate([
         {
           $lookup: {
-            from: 'posttags',
-            localField: '_id',
-            foreignField: 'postld',
+            from: 'tags',
+            localField: 'tags',
+            foreignField: '_id',
             as: 'tags',
+          },
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryld',
+            foreignField: '_id',
+            as: 'category',
           },
         },
         {
@@ -51,29 +87,99 @@ export class PostsService {
             date: 1,
             votes: 1,
             multimedia: 1,
-            tags: 1,
+            categoryld: 1,
+            category: {
+              $cond: {
+                if: {
+                  $and: [{ $gt: [{ $size: '$category' }, 0] }],
+                },
+                then: { $arrayElemAt: ['$category', 0] },
+                else: null,
+              },
+            },
+            tags: {
+              $setUnion: '$tags.description',
+            },
           },
         },
       ]);
-      let tags = await this.tagsModel.find({});
-      for (let i = 0; i < post.length; i++) {
-        let tagsList:any = [];
-        for (let j = 0; j < post[i].tags.length; j++) {
-          for (let k = 0; k < tags.length; k++) {
-            if(tags[k]._id.toString() == post[i].tags[j].tagld.toString()) tagsList.push(tags[i].description);
-          }
-        }
-        console.log(tagsList);
-        post[i].tags = tagsList;
-      }
-      return post;
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} post`;
+  async findOne(id: string) {
+    try {
+      let post = await this.postModel.aggregate([
+        {
+          $match: {
+            $expr: {
+              $eq: ['$_id', { $toObjectId: id }],
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'tags',
+            localField: 'tags',
+            foreignField: '_id',
+            as: 'tags',
+          },
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryld',
+            foreignField: '_id',
+            as: 'category',
+          },
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userld',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            title: 1,
+            content: 1,
+            date: 1,
+            votes: 1,
+            multimedia: 1,
+            categoryld: 1,
+            category: {
+              $cond: {
+                if: {
+                  $and: [{ $gt: [{ $size: '$category' }, 0] }],
+                },
+                then: { $arrayElemAt: ['$category', 0] },
+                else: null,
+              },
+            },
+            tags: {
+              $setUnion: '$tags.description',
+            },
+            user: {
+              $cond: {
+                if: {
+                  $and: [{ $gt: [{ $size: '$user' }, 0] }],
+                },
+                then: { $arrayElemAt: ['$user', 0] },
+                else: null,
+              },
+            },
+          },
+        },
+      ]);
+      if(post && post.length > 0) return post[0];
+      return null;
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
   update(id: number, updatePostDto: UpdatePostDto) {

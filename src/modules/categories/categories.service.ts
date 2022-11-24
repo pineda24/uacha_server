@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ReturnModelType } from '@typegoose/typegoose';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -10,15 +10,31 @@ export class CategoriesService {
 
   constructor(
     @InjectModel(Category.name)
-    private userModel: ReturnModelType<typeof Category>,
+    private categoryModel: ReturnModelType<typeof Category>,
   ) {}
 
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  async create(createCategoryDto: Category) {
+    try {
+      const createCategory = new this.categoryModel(createCategoryDto);
+      return await createCategory
+        .save()
+        .then((res) => {
+          return res;
+        })
+        .catch((err) => {
+          return err;
+        });
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
-  findAll() {
-    return `This action returns all categories`;
+  async findAll() {
+    try {
+      return await this.categoryModel.find({});
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
   findOne(id: number) {

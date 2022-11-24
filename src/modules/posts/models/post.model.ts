@@ -3,6 +3,7 @@ import { ReturnModelType, prop, getModelForClass, types, Ref } from '@typegoose/
 import { AutoMap } from '@nartc/automapper';
 import { Category } from 'src/modules/categories/models/category.model';
 import { User } from 'src/modules/users/models/users.model';
+import { Tag } from 'src/modules/tags/models/tag.model';
 
 export class PostMD{
     @prop({ required: [true,'title is required'] })
@@ -32,6 +33,10 @@ export class PostMD{
     @prop({ required: [false,'userld is required'], ref: () => User, default: null })
     @AutoMap()
     userld: Ref<User>;
+
+    @prop({ required: [false,'tags is required'], ref: () => User, default: [] })
+    @AutoMap()
+    tags: Ref<Tag>[];
 
     static get model(): ReturnModelType<typeof PostMD> {
         return getModelForClass(PostMD);

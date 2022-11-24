@@ -12,6 +12,11 @@ export class PostsController {
     return this.postsService.create(createPostDto);
   }
 
+  @Post('addTags')
+  addTags(@Body() objectTagPost: any) {
+    return this.postsService.addTags(objectTagPost);
+  }
+
   @Get()
   findAll() {
     return this.postsService.findAll();
@@ -19,7 +24,7 @@ export class PostsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.postsService.findOne(+id);
+    return this.postsService.findOne(id);
   }
 
   @Patch(':id')

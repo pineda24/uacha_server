@@ -2,13 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TopicsService } from './topics.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
+import { Topic } from './models/topic.model';
 
 @Controller('topics')
 export class TopicsController {
   constructor(private readonly topicsService: TopicsService) {}
 
   @Post()
-  create(@Body() createTopicDto: CreateTopicDto) {
+  create(@Body() createTopicDto: Topic) {
     return this.topicsService.create(createTopicDto);
   }
 

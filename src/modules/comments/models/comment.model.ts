@@ -24,11 +24,15 @@ export class Comment{
     @AutoMap()
     postld: Ref<PostMD>;
 
-    @prop({ required: [false,'commentld is required'], ref: () => Comment, default:null })
+    @prop({ required: [false,'commentFather is required'], ref: () => Comment, default:null })
     @AutoMap()
-    commentld: Ref<Comment>;
+    commentFather: Ref<Comment>;
 
-    @prop({ required: [false,'userld is required'], ref: () => User, default: null })
+    @prop({ required: [false,'comments is required'], ref: () => Comment, default:[] })
+    @AutoMap()
+    comments: Ref<Comment>[];
+
+    @prop({ required: [true,'userld is required'], ref: () => User, default: null })
     @AutoMap()
     userld: Ref<User>;
 
