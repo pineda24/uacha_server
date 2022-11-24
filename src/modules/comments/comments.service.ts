@@ -14,15 +14,17 @@ export class CommentsService {
 
   async create(createCommentDto: Comment) {
     try {
+      const { commentFather } = createCommentDto;
       const createUser = new this.commentModel(createCommentDto);
-      return await createUser
-        .save()
-        .then((res) => {
-          return res;
-        })
-        .catch((err) => {
-          return err;
+      let userCreated = await createUser.save();
+      console.log(commentFather);
+      if (commentFather) {
+        await this.addComment({
+          commentId: commentFather,
+          subCommentId: userCreated._id.toString(),
         });
+      }
+      return userCreated;
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -30,7 +32,30 @@ export class CommentsService {
 
   async findbyPostId(id: string) {
     try {
-      return await this.commentModel.aggregate([
+      let listComments: any = await this.commentModel.aggregate([
+        // {
+        //   $match: {
+        //     $expr: {
+        //       $eq: ['$postld', { $toObjectId: id }],
+        //     },
+        //   },
+        // },
+        // {
+        //   $match: {
+        //     $expr: {
+        //       $eq: ['$commentFather', null],
+        //     },
+        //   },
+        // },
+        // {
+        //   $lookup: {
+        //     from: 'comments',
+        //     localField: 'comments',
+        //     foreignField: '_id',
+        //     as: 'comments',
+        //   },
+        // },
+
         {
           $match: {
             $expr: {
@@ -40,13 +65,43 @@ export class CommentsService {
         },
         {
           $lookup: {
-            from: 'comments',
-            localField: 'commentld',
+            from: 'users',
+            localField: 'userld',
             foreignField: '_id',
-            as: 'comments',
+            as: 'users',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            content: 1,
+            date: 1,
+            votes: 1,
+            postld: 1,
+            commentFather: 1,
+            userName: {
+              $cond: {
+                if: {
+                  $and: [{ $gt: [{ $size: '$users' }, 0] }],
+                },
+                then: { $arrayElemAt: ['$users.userName', 0] },
+                else: null,
+              },
+            },
           },
         },
       ]);
+
+      // Add list Comments
+      for (let i = 0; i < listComments.length; i++) {
+        listComments[i].comments = [];
+        listComments[i].comments =  listComments.filter((obj) => (obj.commentFather ? obj.commentFather.toString() : null) == listComments[i]._id.toString());
+      }
+
+      // Delete subComments
+      listComments = listComments.filter((obj) => obj.commentFather == null)
+      
+      return listComments;
     } catch (e) {
       throw new InternalServerErrorException(e);
     }

@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ReturnModelType } from '@typegoose/typegoose';
+import { CommentsService } from '../comments/comments.service';
 import { Tag } from '../tags/models/tag.model';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -13,6 +14,7 @@ export class PostsService {
     private postModel: ReturnModelType<typeof PostMD>,
     @InjectModel(Tag.name)
     private tagsModel: ReturnModelType<typeof Tag>,
+    private commentService: CommentsService,
   ) {}
 
   async create(createPostDto: PostMD) {
@@ -175,7 +177,10 @@ export class PostsService {
           },
         },
       ]);
-      if(post && post.length > 0) return post[0];
+      if (post && post.length > 0) {
+        post[0].comments = await this.commentService.findbyPostId(post[0]._id);
+        return post[0];
+      }
       return null;
     } catch (e) {
       throw new InternalServerErrorException(e);

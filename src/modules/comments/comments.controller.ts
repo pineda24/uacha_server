@@ -17,8 +17,7 @@ export class CommentsController {
     return this.commentsService.findAll();
   }
 
-  // findbyPostId
-  @Post('addTags')
+  @Post('addComment')
   addTags(@Body() objectTagPost: any) {
     return this.commentsService.addComment(objectTagPost);
   }
