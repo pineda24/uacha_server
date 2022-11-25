@@ -27,6 +27,15 @@ export class UsersService {
     }
   }
 
+  async login(objLogin: any){
+    const {userName,password} = objLogin;
+    try {
+      return await this.userModel.findOne({userName: userName,password:password })
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
   async findAll() {
     try {
       return await this.userModel.find({});
