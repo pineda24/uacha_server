@@ -138,7 +138,8 @@ export class PostsService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string,obj:any) {
+    const {userld} = obj;
     try {
       let post = await this.postModel.aggregate([
         {
@@ -206,7 +207,7 @@ export class PostsService {
         },
       ]);
       if (post && post.length > 0) {
-        post[0].comments = await this.commentService.findbyPostId(post[0]._id);
+        post[0].comments = await this.commentService.findbyPostId(post[0]._id,userld);
         return post[0];
       }
       return null;

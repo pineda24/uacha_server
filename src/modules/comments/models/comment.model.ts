@@ -12,13 +12,13 @@ export class Comment{
     @AutoMap()
     content: String;
 
-    @prop({ required: [true,'date is required'], default: new Date() })
+    @prop({ required: [false,'date is required'], default: new Date() })
     @AutoMap()
     date: Date;
 
-    @prop({ required: [true,'votes is required'], validate: /^[0-9]*$/, default:0 })
-    @AutoMap()
-    votes: number;
+    // @prop({ required: [true,'votes is required'], validate: /^[0-9]*$/, default:0 })
+    // @AutoMap()
+    // votes: number;
 
     @prop({ required: [true,'postld is required'], ref: () => PostMD, default:null })
     @AutoMap()
@@ -28,9 +28,9 @@ export class Comment{
     @AutoMap()
     commentFather: Ref<Comment>;
 
-    @prop({ required: [false,'comments is required'], ref: () => Comment, default:[] })
-    @AutoMap()
-    comments: Ref<Comment>[];
+    // @prop({ required: [false,'comments is required'], ref: () => Comment, default:[] })
+    // @AutoMap()
+    // comments: Ref<Comment>[];
 
     @prop({ required: [true,'userld is required'], ref: () => User, default: null })
     @AutoMap()

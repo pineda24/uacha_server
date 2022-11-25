@@ -21,19 +21,23 @@ export class CommentsService {
       const createUser = new this.commentModel(createCommentDto);
       let userCreated = await createUser.save();
       console.log(commentFather);
-      if (commentFather) {
-        await this.addComment({
-          commentId: commentFather,
-          subCommentId: userCreated._id.toString(),
-        });
-      }
+      // if (commentFather) {
+      //   await this.addComment({
+      //     commentId: commentFather,
+      //     subCommentId: userCreated._id.toString(),
+      //   });
+      // }
       return userCreated;
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
   }
 
-  async findbyPostId(id: string) {
+  async findbyPostIdAndUser(id: string, userId){
+
+  }
+
+  async findbyPostId(id: string,userld: string = '') {
     try {
       let listComments: any = await this.commentModel.aggregate([
         // {
@@ -82,6 +86,14 @@ export class CommentsService {
             votes: 1,
             postld: 1,
             commentFather: 1,
+            upVotes: 1,
+            downVotes: 1,
+            hasVoteUp: {
+              $in: [{ $toObjectId: userld }, '$upVotes'],
+            },
+            hasDownVotes: {
+              $in: [{ $toObjectId: userld }, '$downVotes'],
+            },
             userName: {
               $cond: {
                 if: {
@@ -168,7 +180,7 @@ export class CommentsService {
         await this.removeDownVotes(objectAdd);
       }
       if (objVoteUser && objVoteUser[0].hasVoteUp) {
-        return await this.commentModel.findOne({ _id:commentld });
+        return await this.removeVotesUp(objectAdd);
       } else {
         let user: any = await this.userModel.findOne({ _id: userld });
         return await this.commentModel.findByIdAndUpdate(
@@ -221,7 +233,7 @@ export class CommentsService {
         await this.removeVotesUp(objectAdd);
       }
       if (objVoteUser && objVoteUser[0].hasDownVotes) {
-        return await this.commentModel.findOne({ _id:commentld });
+        return await this.removeDownVotes(objectAdd);
       } else {
         let user: any = await this.userModel.findOne({ _id: userld });
         return await this.commentModel.findByIdAndUpdate(
