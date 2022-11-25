@@ -38,6 +38,14 @@ export class PostMD{
     @AutoMap()
     tags: Ref<Tag>[];
 
+    @prop({ required: [false,'upVotes is required'], ref: () => User, default: [] })
+    @AutoMap()
+    upVotes: Ref<User>[];
+
+    @prop({ required: [false,'downVotes is required'], ref: () => User, default: [] })
+    @AutoMap()
+    downVotes: Ref<User>[];
+
     static get model(): ReturnModelType<typeof PostMD> {
         return getModelForClass(PostMD);
     }
