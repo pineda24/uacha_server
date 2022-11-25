@@ -17,6 +17,30 @@ export class PostsController {
     return this.postsService.addTags(objectTagPost);
   }
 
+  // VOTES UP
+
+  @Post('addVotesUp')
+  addVotesUp(@Body() objectUserPost: any) {
+    return this.postsService.addVotesUp(objectUserPost);
+  }
+
+  @Post('removeVotesUp')
+  removeVotesUp(@Body() objectUserPost: any) {
+    return this.postsService.removeVotesUp(objectUserPost);
+  }
+
+  // VOTES DOWN
+
+  @Post('addDownVotes')
+  addDownVotes(@Body() objectTagPost: any) {
+    return this.postsService.addDownVotes(objectTagPost);
+  }
+
+  @Post('removeDownVotes')
+  removeDownVotes(@Body() objectTagPost: any) {
+    return this.postsService.removeDownVotes(objectTagPost);
+  }
+
   @Get()
   findAll() {
     return this.postsService.findAll();

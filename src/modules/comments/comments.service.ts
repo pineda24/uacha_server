@@ -242,12 +242,6 @@ export class CommentsService {
           { upsert: true, new: true },
         );
       }
-      // let user: any = await this.userModel.findOne({ _id: userld });
-      // return await this.commentModel.findByIdAndUpdate(
-      //   { _id: commentld },
-      //   { $push: { downVotes: user } },
-      //   { upsert: true, new: true },
-      // );
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -261,7 +255,7 @@ export class CommentsService {
       return await this.commentModel.findByIdAndUpdate(
         { _id: commentld },
         { $pull: { downVotes: user._id } },
-        // { upsert: true, new: true },
+        { upsert: true, new: true },
       );
     } catch (e) {
       throw new InternalServerErrorException(e);

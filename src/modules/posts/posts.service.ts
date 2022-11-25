@@ -138,8 +138,8 @@ export class PostsService {
     }
   }
 
-  async findOne(id: string,obj:any) {
-    const {userld} = obj;
+  async findOne(id: string, obj: any) {
+    const { userld } = obj;
     try {
       let post = await this.postModel.aggregate([
         {
@@ -194,6 +194,14 @@ export class PostsService {
             tags: {
               $setUnion: '$tags.description',
             },
+            upVotes: 1,
+            downVotes: 1,
+            hasVoteUp: {
+              $in: [{ $toObjectId: userld }, '$upVotes'],
+            },
+            hasDownVotes: {
+              $in: [{ $toObjectId: userld }, '$downVotes'],
+            },
             user: {
               $cond: {
                 if: {
@@ -207,10 +215,119 @@ export class PostsService {
         },
       ]);
       if (post && post.length > 0) {
-        post[0].comments = await this.commentService.findbyPostId(post[0]._id,userld);
+        post[0].comments = await this.commentService.findbyPostId(
+          post[0]._id,
+          userld,
+        );
         return post[0];
       }
       return null;
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async addVotesUp(objectAdd: any) {
+    try {
+      const { postld, userld } = objectAdd;
+      let objVoteUser = await this.postModel.aggregate([
+        {
+          $match: {
+            $expr: {
+              $eq: ['$_id', { $toObjectId: postld }],
+            },
+          },
+        },
+        {
+          $project: {
+            hasVoteUp: {
+              $in: [{ $toObjectId: userld }, '$upVotes'],
+            },
+            hasDownVotes: {
+              $in: [{ $toObjectId: userld }, '$downVotes'],
+            },
+          },
+        },
+      ]);
+      if (objVoteUser && objVoteUser[0].hasDownVotes) {
+        await this.removeDownVotes(objectAdd);
+      }
+      if (objVoteUser && objVoteUser[0].hasVoteUp) {
+        return await this.removeVotesUp(objectAdd);
+      } else {
+        let user: any = await this.userModel.findOne({ _id: userld });
+        return await this.postModel.findByIdAndUpdate(
+          { _id: postld },
+          { $push: { upVotes: user } },
+          { upsert: true, new: true },
+        );
+      }
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async removeVotesUp(objectAdd: any) {
+    try {
+      const { postld, userld } = objectAdd;
+      return await this.postModel.findByIdAndUpdate(
+        { _id: postld },
+        { $pull: { upVotes: userld } },
+        { upsert: true, new: true },
+      );
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async addDownVotes(objectAdd: any) {
+    try {
+      const { postld, userld } = objectAdd;
+      let objVoteUser = await this.postModel.aggregate([
+        {
+          $match: {
+            $expr: {
+              $eq: ['$_id', { $toObjectId: postld }],
+            },
+          },
+        },
+        {
+          $project: {
+            hasVoteUp: {
+              $in: [{ $toObjectId: userld }, '$upVotes'],
+            },
+            hasDownVotes: {
+              $in: [{ $toObjectId: userld }, '$downVotes'],
+            },
+          },
+        },
+      ]);
+      if (objVoteUser && objVoteUser[0].hasVoteUp) {
+        await this.removeVotesUp(objectAdd);
+      }
+      if (objVoteUser && objVoteUser[0].hasDownVotes) {
+        return await this.removeDownVotes(objectAdd);
+      } else {
+        let user: any = await this.userModel.findOne({ _id: userld });
+        return await this.postModel.findByIdAndUpdate(
+          { _id: postld },
+          { $push: { downVotes: user } },
+          { upsert: true, new: true },
+        );
+      }
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async removeDownVotes(objectAdd: any) {
+    try {
+      const { postld, userld } = objectAdd;
+      return await this.postModel.findByIdAndUpdate(
+        { _id: postld },
+        { $pull: { downVotes: userld } },
+        { upsert: true, new: true },
+      );
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
