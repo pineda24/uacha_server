@@ -43,6 +43,14 @@ export class UsersService {
     }
   }
 
+  async findOneByUserName(userName: string) {
+    try {
+      return await this.userModel.findOne({userName: userName});
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
   async update(id: string, updateUserDto: User) {
     try {
       // console.log(updateEmployeeDto);
@@ -51,7 +59,7 @@ export class UsersService {
       let user = new User();
       user.fullName = fullName ? fullName : "";
       user.email = email ? email : "";
-      user.gender = gender ? gender : 0;
+      user.gender = gender ? gender : "";
       user.birthDate = birthDate ? birthDate : new Date();
       user.description = description ? description : "";
       user.userName = userName ? userName : "";

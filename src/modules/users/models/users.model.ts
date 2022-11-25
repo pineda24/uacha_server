@@ -3,17 +3,17 @@ import { ReturnModelType, prop, getModelForClass, types } from '@typegoose/typeg
 import { AutoMap } from '@nartc/automapper';
 
 export class User{
-    @prop({ required: [true,'fullName deptno is required'] })
+    @prop({ required: [true,'fullName user is required'] })
     @AutoMap()
     fullName: String;
 
-    @prop({ required: [true, 'email is required'],unique: true })
+    @prop({ required: [true, 'email is required'] })
     @AutoMap()
     email: String;
 
-    @prop({ required: [true, 'gender is required'], validate: /^[0-1]{1}$/, default:0 })
+    @prop({ required: [true, 'gender is required'], default: 0 })
     @AutoMap()
-    gender: number;
+    gender: String;
 
     @prop({ required: [true, 'birthDate is required'], default: new Date() })
     @AutoMap()
@@ -23,7 +23,7 @@ export class User{
     @AutoMap()
     description: String;
 
-    @prop({ required: [true, 'userName is required'], unique:true })
+    @prop({ required: [true, 'userName is required'], unique: true })
     @AutoMap()
     userName: String;
 

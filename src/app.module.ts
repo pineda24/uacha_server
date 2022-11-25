@@ -17,7 +17,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     //   "mongodb+srv://admin:admin@cluster0.s3spylg.mongodb.net/?retryWrites=true&w=majority"
     // ),
     MongooseModule.forRoot(
-      "mongodb://localhost:27017/uacha",
+      "mongodb+srv://admin:admin@cluster0.s3spylg.mongodb.net/test",
       {
         useNewUrlParser: true,
       }
