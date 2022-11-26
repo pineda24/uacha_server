@@ -30,7 +30,8 @@ export class UsersService {
   async login(objLogin: any){
     const {userName,password} = objLogin;
     try {
-      return await this.userModel.findOne({userName: userName,password:password })
+      let user = await this.userModel.findOne({userName: userName,password:password });
+      return user;
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -60,23 +61,24 @@ export class UsersService {
     }
   }
 
-  async update(id: string, updateUserDto: User) {
+  async update(id: string, updateUserDto: any) {
     try {
       // console.log(updateEmployeeDto);
       let { fullName,email,gender,birthDate,description,userName,password } =
         updateUserDto;
       let user = new User();
-      user.fullName = fullName ? fullName : "";
-      user.email = email ? email : "";
-      user.gender = gender ? gender : "";
-      user.birthDate = birthDate ? birthDate : new Date();
-      user.description = description ? description : "";
-      user.userName = userName ? userName : "";
+      // user.fullName = fullName ? fullName : "";
+      // user.email = email ? email : "";
+      // user.gender = gender ? gender : "";
+      // user.birthDate = birthDate ? birthDate : new Date();
+      // user.description = description ? description : "";
+      // user.userName = userName ? userName : "";
+
       //GENRATE PASSWORD
       // user.password = password ? password : "";
-
+      console.log(updateUserDto);
       return await this.userModel
-        .updateOne({ _id: id }, user)
+        .updateOne({ userName: id }, updateUserDto)
         .then((res) => {
           return res;
         })
