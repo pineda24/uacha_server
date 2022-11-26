@@ -77,7 +77,11 @@ export class TagsService {
   }
 
   findAll() {
-    return `This action returns all tags`;
+    try {
+      return this.tagsModel.find();
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
   findOne(id: number) {
