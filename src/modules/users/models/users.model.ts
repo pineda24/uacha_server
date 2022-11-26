@@ -11,7 +11,7 @@ export class User{
     @AutoMap()
     email: String;
 
-    @prop({ required: [true, 'gender is required'], default: 0 })
+    @prop({ required: [true, 'gender is required'] })
     @AutoMap()
     gender: String;
 
