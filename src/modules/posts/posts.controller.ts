@@ -41,19 +41,19 @@ export class PostsController {
     return this.postsService.removeDownVotes(objectTagPost);
   }
 
-  @Get()
-  findAll() {
-    return this.postsService.findAll();
+  @Get(':category/:topic')
+  findAll(@Param('category') category: string, @Param('topic') topic: string) {
+    return this.postsService.findAll(category, topic);
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.postsService.findOne(id);
-  // }
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.postsService.findOne(id);
+  }
 
   @Post(':id')
-  findByUserOne(@Param('id') id: string,@Body() obj: any) {
-    return this.postsService.findOne(id,obj);
+  findByUserOne(@Param('id') id: string, @Body() obj: any) {
+    return this.postsService.findByUserOne(id, obj);
   }
 
   @Patch(':id')

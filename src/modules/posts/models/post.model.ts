@@ -14,25 +14,25 @@ export class PostMD{
     @AutoMap()
     content: String;
 
-    @prop({ required: [true,'date is required'],default: new Date() })
+    @prop({ required: [true,'date is required'], default: new Date() })
     @AutoMap()
     date: Date;
-
-    @prop({ required: [true,'votes is required'], default: 0, validate: /^[0-9]*$/ })
-    @AutoMap()
-    votes: number;
 
     @prop({ required: [false,'multimedia is required'] })
     @AutoMap()
     multimedia: String;
 
-    @prop({ required: [false,'categoryld is required'], ref: () => Category, default: null })
+    @prop({ required: [true, 'categoryId is required'], ref: () => Category, default: null })
     @AutoMap()
-    categoryld: Ref<Category>;
+    categoryId: Ref<Category>;
+
+    @prop({ required: [true, 'topic is required']})
+    @AutoMap()
+    topic: String;
 
     @prop({ required: [false,'userld is required'], ref: () => User, default: null })
     @AutoMap()
-    userld: Ref<User>;
+    userId: Ref<User>;
 
     @prop({ required: [false,'tags is required'], ref: () => Tag, default: [] })
     @AutoMap()

@@ -8,6 +8,8 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { PostMD } from './models/post.model';
 import { User } from '../users/models/users.model';
 import { TagsService } from '../tags/tags.service';
+import mongoose from 'mongoose';
+const ObjectId = mongoose.Types.ObjectId;
 
 @Injectable()
 export class PostsService {
@@ -24,13 +26,15 @@ export class PostsService {
 
   async create(createPostDto: PostMD) {
     try {
-      const createUser = new this.postModel(createPostDto);
-      return await createUser
+      const createPost = new this.postModel(createPostDto);
+      return await createPost
         .save()
         .then((res) => {
+          
           return res;
         })
         .catch((err) => {
+          console.log(err)
           return err;
         });
     } catch (e) {
@@ -40,16 +44,16 @@ export class PostsService {
 
   async addTags(objectAdd: any) {
     try {
-      const { postld, description } = objectAdd;
+      const { postId, description } = objectAdd;
       let tag = await this.tagsModel.findOne({ description: description });
       if (tag == undefined || tag == null) {
         tag = await this.tagService.create({ description: description });
       }
-      let exist = await this.postModel.aggregate([
+      const exist = await this.postModel.aggregate([
         {
           $match: {
             $expr: {
-              $eq: ['$_id', { $toObjectId: postld }],
+              $eq: ['$_id', { $toObjectId: postId }],
             },
           },
         },
@@ -63,7 +67,7 @@ export class PostsService {
       ]);
       if (exist && exist.length > 0 && exist[0].tag == false) {
         return await this.postModel.findByIdAndUpdate(
-          { _id: postld },
+          { _id: postId },
           { $push: { tags: tag } },
           { upsert: true, new: true },
         );
@@ -89,10 +93,15 @@ export class PostsService {
     }
   }
 
-  async findAll() {
+  async findAll(category: string, topic: string) {
     try {
-      // return await this.postModel.find({});
-      return await this.postModel.aggregate([
+      return await await this.postModel.aggregate([
+        {
+          $match: {$and: [
+            {'categoryId': new ObjectId(category)},
+            {'topic': topic}
+          ]},
+        },
         {
           $lookup: {
             from: 'tags',
@@ -104,7 +113,7 @@ export class PostsService {
         {
           $lookup: {
             from: 'categories',
-            localField: 'categoryld',
+            localField: 'categoryId',
             foreignField: '_id',
             as: 'category',
           },
@@ -115,30 +124,29 @@ export class PostsService {
             title: 1,
             content: 1,
             date: 1,
-            votes: 1,
             multimedia: 1,
-            categoryld: 1,
-            category: {
-              $cond: {
-                if: {
-                  $and: [{ $gt: [{ $size: '$category' }, 0] }],
-                },
-                then: { $arrayElemAt: ['$category', 0] },
-                else: null,
-              },
-            },
+            "category.title": 1,
+            topic: 1,
             tags: {
               $setUnion: '$tags.description',
             },
-          },
-        },
+          }
+        }
       ]);
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
   }
 
-  async findOne(id: string, obj: any) {
+  async findOne(id: string) {
+    try {
+      return await this.postModel.findOne({_id: id});
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async findByUserOne(id: string, obj: any) {
     const { userld } = obj;
     try {
       let post = await this.postModel.aggregate([

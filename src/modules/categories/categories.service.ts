@@ -26,7 +26,7 @@ export class CategoriesService {
 
   async findAll() {
     try {
-      return await this.categoryModel.find({});
+      return await this.categoryModel.find();
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -87,8 +87,12 @@ export class CategoriesService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findOne(id: string) {
+    try {
+      return await this.categoryModel.findById(id);
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
   update(id: number, updateCategoryDto: UpdateCategoryDto) {

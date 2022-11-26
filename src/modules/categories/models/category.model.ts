@@ -1,7 +1,5 @@
 import { ReturnModelType, prop, getModelForClass, types, Ref } from '@typegoose/typegoose';
-// import { BaseModel, schemaOptions } from '../../../shared/base.model';
 import { AutoMap } from '@nartc/automapper';
-import { Topic } from 'src/modules/topics/models/topic.model';
 
 export class Category{
     @prop({ required: [true,'title is required'] })
@@ -12,9 +10,9 @@ export class Category{
     @AutoMap()
     description: String;
 
-    @prop({ required: [false,'tags is required'], ref: () => Topic, default: [] })
+    @prop({ required: [false,'tags is required'], default: [] })
     @AutoMap()
-    topics: Ref<Topic>[];
+    topics: Array<String>[];
 
     static get model(): ReturnModelType<typeof Category> {
         return getModelForClass(Category);
