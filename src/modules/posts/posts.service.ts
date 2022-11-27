@@ -1,10 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ReturnModelType } from '@typegoose/typegoose';
-import { CommentsService } from '../comments/comments.service';
 import { Tag } from '../tags/models/tag.model';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
 import { PostMD } from './models/post.model';
 import { User } from '../users/models/users.model';
 import { TagsService } from '../tags/tags.service';
@@ -20,7 +17,6 @@ export class PostsService {
     private tagsModel: ReturnModelType<typeof Tag>,
     @InjectModel(User.name)
     private userModel: ReturnModelType<typeof User>,
-    private commentService: CommentsService,
     private tagService: TagsService,
   ) {}
 
@@ -30,11 +26,9 @@ export class PostsService {
       return await createPost
         .save()
         .then((res) => {
-          
           return res;
         })
         .catch((err) => {
-          console.log(err)
           return err;
         });
     } catch (e) {
@@ -81,13 +75,55 @@ export class PostsService {
 
   async removeTags(objectRemove: any) {
     try {
-      const { postld, tagld } = objectRemove;
-      let tag: any = await this.tagsModel.findOne({ _id: tagld });
+      const { postId, tagId } = objectRemove;
+      let tag: any = await this.tagsModel.findOne({ _id: tagId });
       return await this.postModel.findByIdAndUpdate(
-        { _id: postld },
+        { _id: postId },
         { $pull: { tags: tag } },
         { upsert: true, new: true },
       );
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async findAllByUser(userId: string) {
+    try {
+      return await this.postModel.aggregate([
+        {
+          $match: {'userId': new ObjectId(userId)},
+        },
+        {
+          $lookup: {
+            from: 'tags',
+            localField: 'tags',
+            foreignField: '_id',
+            as: 'tags',
+          },
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'category',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            title: 1,
+            content: 1,
+            date: 1,
+            multimedia: 1,
+            "category.title": 1,
+            topic: 1,
+            tags: {
+              $setUnion: '$tags.description',
+            },
+          }
+        }
+      ]);
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -189,113 +225,24 @@ export class PostsService {
     }
   }
 
-  async findByUserOne(id: string, obj: any) {
-    const { userld } = obj;
-    try {
-      let post = await this.postModel.aggregate([
-        {
-          $match: {
-            $expr: {
-              $eq: ['$_id', { $toObjectId: id }],
-            },
-          },
-        },
-        {
-          $lookup: {
-            from: 'tags',
-            localField: 'tags',
-            foreignField: '_id',
-            as: 'tags',
-          },
-        },
-        {
-          $lookup: {
-            from: 'categories',
-            localField: 'categoryld',
-            foreignField: '_id',
-            as: 'category',
-          },
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'userld',
-            foreignField: '_id',
-            as: 'user',
-          },
-        },
-        {
-          $project: {
-            _id: 1,
-            title: 1,
-            content: 1,
-            date: 1,
-            votes: 1,
-            multimedia: 1,
-            categoryld: 1,
-            category: {
-              $cond: {
-                if: {
-                  $and: [{ $gt: [{ $size: '$category' }, 0] }],
-                },
-                then: { $arrayElemAt: ['$category', 0] },
-                else: null,
-              },
-            },
-            tags: {
-              $setUnion: '$tags.description',
-            },
-            upVotes: 1,
-            downVotes: 1,
-            hasVoteUp: {
-              $in: [{ $toObjectId: userld }, '$upVotes'],
-            },
-            hasDownVotes: {
-              $in: [{ $toObjectId: userld }, '$downVotes'],
-            },
-            user: {
-              $cond: {
-                if: {
-                  $and: [{ $gt: [{ $size: '$user' }, 0] }],
-                },
-                then: { $arrayElemAt: ['$user', 0] },
-                else: null,
-              },
-            },
-          },
-        },
-      ]);
-      if (post && post.length > 0) {
-        post[0].comments = await this.commentService.findbyPostId(
-          post[0]._id,
-          userld,
-        );
-        return post[0];
-      }
-      return null;
-    } catch (e) {
-      throw new InternalServerErrorException(e);
-    }
-  }
-
   async addVotesUp(objectAdd: any) {
     try {
-      const { postld, userld } = objectAdd;
+      const { postId, userId } = objectAdd;
       let objVoteUser = await this.postModel.aggregate([
         {
           $match: {
             $expr: {
-              $eq: ['$_id', { $toObjectId: postld }],
+              $eq: ['$_id', { $toObjectId: postId }],
             },
           },
         },
         {
           $project: {
             hasVoteUp: {
-              $in: [{ $toObjectId: userld }, '$upVotes'],
+              $in: [{ $toObjectId: userId }, '$upVotes'],
             },
             hasDownVotes: {
-              $in: [{ $toObjectId: userld }, '$downVotes'],
+              $in: [{ $toObjectId: userId }, '$downVotes'],
             },
           },
         },
@@ -306,9 +253,9 @@ export class PostsService {
       if (objVoteUser && objVoteUser[0].hasVoteUp) {
         return await this.removeVotesUp(objectAdd);
       } else {
-        let user: any = await this.userModel.findOne({ _id: userld });
+        let user: any = await this.userModel.findOne({ _id: userId });
         return await this.postModel.findByIdAndUpdate(
-          { _id: postld },
+          { _id: postId },
           { $push: { upVotes: user } },
           { upsert: true, new: true },
         );
@@ -320,10 +267,10 @@ export class PostsService {
 
   async removeVotesUp(objectAdd: any) {
     try {
-      const { postld, userld } = objectAdd;
+      const { postId, userId } = objectAdd;
       return await this.postModel.findByIdAndUpdate(
-        { _id: postld },
-        { $pull: { upVotes: userld } },
+        { _id: postId },
+        { $pull: { upVotes: userId } },
         { upsert: true, new: true },
       );
     } catch (e) {
@@ -333,22 +280,22 @@ export class PostsService {
 
   async addDownVotes(objectAdd: any) {
     try {
-      const { postld, userld } = objectAdd;
+      const { postId, userId } = objectAdd;
       let objVoteUser = await this.postModel.aggregate([
         {
           $match: {
             $expr: {
-              $eq: ['$_id', { $toObjectId: postld }],
+              $eq: ['$_id', { $toObjectId: postId }],
             },
           },
         },
         {
           $project: {
             hasVoteUp: {
-              $in: [{ $toObjectId: userld }, '$upVotes'],
+              $in: [{ $toObjectId: userId }, '$upVotes'],
             },
             hasDownVotes: {
-              $in: [{ $toObjectId: userld }, '$downVotes'],
+              $in: [{ $toObjectId: userId }, '$downVotes'],
             },
           },
         },
@@ -359,9 +306,9 @@ export class PostsService {
       if (objVoteUser && objVoteUser[0].hasDownVotes) {
         return await this.removeDownVotes(objectAdd);
       } else {
-        let user: any = await this.userModel.findOne({ _id: userld });
+        let user: any = await this.userModel.findOne({ _id: userId });
         return await this.postModel.findByIdAndUpdate(
-          { _id: postld },
+          { _id: postId },
           { $push: { downVotes: user } },
           { upsert: true, new: true },
         );
@@ -373,10 +320,10 @@ export class PostsService {
 
   async removeDownVotes(objectAdd: any) {
     try {
-      const { postld, userld } = objectAdd;
+      const { postId, userId } = objectAdd;
       return await this.postModel.findByIdAndUpdate(
-        { _id: postld },
-        { $pull: { downVotes: userld } },
+        { _id: postId },
+        { $pull: { downVotes: userId } },
         { upsert: true, new: true },
       );
     } catch (e) {
@@ -384,11 +331,40 @@ export class PostsService {
     }
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
+  async updatePost(postId: string, post: any) {
+    try {
+      const tags = await this.tagsModel.aggregate([
+        {
+          $match: { "description": { "$in": post.tags } }
+        },
+        {
+          $project: {
+            _id: 1
+          } 
+        }
+      ])
+      post.tags = [];
+      tags.forEach(element => {
+        post.tags.push(element._id);
+      });
+      return await this.postModel
+        .findOneAndUpdate({_id: postId}, {$set: post})
+        .then((res) => {
+          return res;
+        })
+        .catch((err) => {
+          return err;
+        });
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+  async deletePost(postId: string) {
+    try {
+      return await this.postModel.deleteOne({_id: postId});
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
   }
 }

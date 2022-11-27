@@ -27,11 +27,9 @@ export class UsersService {
     }
   }
 
-  async login(objLogin: any){
-    const {userName,password} = objLogin;
+  async login(userName: string) {
     try {
-      let user = await this.userModel.findOne({userName: userName,password:password });
-      return user;
+      return await this.userModel.findOne({userName: userName}, {_id: 0, userName: 1, password: 1});
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -45,9 +43,9 @@ export class UsersService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(userName: string) {
     try {
-      return await this.userModel.findOne({_id:id});
+      return await this.userModel.findOne({userName: userName});
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -63,20 +61,6 @@ export class UsersService {
 
   async update(id: string, updateUserDto: any) {
     try {
-      // console.log(updateEmployeeDto);
-      let { fullName,email,gender,birthDate,description,userName,password } =
-        updateUserDto;
-      let user = new User();
-      // user.fullName = fullName ? fullName : "";
-      // user.email = email ? email : "";
-      // user.gender = gender ? gender : "";
-      // user.birthDate = birthDate ? birthDate : new Date();
-      // user.description = description ? description : "";
-      // user.userName = userName ? userName : "";
-
-      //GENRATE PASSWORD
-      // user.password = password ? password : "";
-      console.log(updateUserDto);
       return await this.userModel
         .updateOne({ userName: id }, updateUserDto)
         .then((res) => {

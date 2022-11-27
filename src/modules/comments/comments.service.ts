@@ -17,110 +17,94 @@ export class CommentsService {
 
   async create(createCommentDto: Comment) {
     try {
-      const { commentFather } = createCommentDto;
       const createUser = new this.commentModel(createCommentDto);
       let userCreated = await createUser.save();
-      console.log(commentFather);
-      // if (commentFather) {
-      //   await this.addComment({
-      //     commentId: commentFather,
-      //     subCommentId: userCreated._id.toString(),
-      //   });
-      // }
       return userCreated;
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
   }
 
-  async findbyPostIdAndUser(id: string, userId){
-
-  }
-
-  async findbyPostId(id: string,userld: string = '') {
+  async findByPostId(id: string) {
     try {
-      let listComments: any = await this.commentModel.aggregate([
-        // {
-        //   $match: {
-        //     $expr: {
-        //       $eq: ['$postld', { $toObjectId: id }],
-        //     },
-        //   },
-        // },
-        // {
-        //   $match: {
-        //     $expr: {
-        //       $eq: ['$commentFather', null],
-        //     },
-        //   },
-        // },
-        // {
-        //   $lookup: {
-        //     from: 'comments',
-        //     localField: 'comments',
-        //     foreignField: '_id',
-        //     as: 'comments',
-        //   },
-        // },
-
+      let commentList = await this.commentModel.aggregate([
         {
           $match: {
             $expr: {
-              $eq: ['$postld', { $toObjectId: id }],
+              $eq: ['$postId', { $toObjectId: id }],
             },
           },
         },
         {
           $lookup: {
             from: 'users',
-            localField: 'userld',
+            localField: 'userId',
             foreignField: '_id',
-            as: 'users',
+            as: 'user',
           },
+        },
+        {
+          $lookup: {
+            from: 'comments',
+            localField: '_id',
+            foreignField: 'commentId',
+            as: 'comments',
+          },
+        },
+        {
+          $unwind: {
+            path: '$comments',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'comments.userId',
+            foreignField: '_id',
+            as: 'comments.user',
+          },
+        },
+        {
+          $unwind: {
+            path: '$comments.user',
+            preserveNullAndEmptyArrays: true
+          }
         },
         {
           $project: {
             _id: 1,
             content: 1,
             date: 1,
-            votes: 1,
-            postld: 1,
-            commentFather: 1,
+            postId: 1,
             upVotes: 1,
             downVotes: 1,
             hasVoteUp: {
-              $in: [{ $toObjectId: userld }, '$upVotes'],
+              $in: [{ $toObjectId: '$userId' }, '$upVotes'],
             },
             hasDownVotes: {
-              $in: [{ $toObjectId: userld }, '$downVotes'],
+              $in: [{ $toObjectId: '$userId' }, '$downVotes'],
             },
-            userName: {
-              $cond: {
-                if: {
-                  $and: [{ $gt: [{ $size: '$users' }, 0] }],
-                },
-                then: { $arrayElemAt: ['$users.userName', 0] },
-                else: null,
-              },
-            },
+            user: { $arrayElemAt: ['$user', 0] },
+            comments: 1,
           },
         },
+        {
+          $group: {
+            _id: '$_id',
+            content: { "$first": "$content" },
+            date: { "$first": "$date" },
+            postId: { "$first": "$postId" },
+            upVotes: { "$first": "$upVotes" },
+            downVotes: { "$first": "$downVotes" },
+            hasVoteUp: { "$first": "$hasVoteUp" },
+            hasDownVotes: { "$first": "$hasDownVotes" },
+            user: { "$first": "$user" },
+            comments: {$push: '$comments'}
+          }
+        }
       ]);
-
-      // Add list Comments
-      for (let i = 0; i < listComments.length; i++) {
-        listComments[i].comments = [];
-        listComments[i].comments = listComments.filter(
-          (obj) =>
-            (obj.commentFather ? obj.commentFather.toString() : null) ==
-            listComments[i]._id.toString(),
-        );
-      }
-
-      // Delete subComments
-      listComments = listComments.filter((obj) => obj.commentFather == null);
-
-      return listComments;
+      return commentList;
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -156,22 +140,22 @@ export class CommentsService {
 
   async addVotesUp(objectAdd: any) {
     try {
-      const { commentld, userld } = objectAdd;
+      const { commentId, userId } = objectAdd;
       let objVoteUser = await this.commentModel.aggregate([
         {
           $match: {
             $expr: {
-              $eq: ['$_id', { $toObjectId: commentld }],
+              $eq: ['$_id', { $toObjectId: commentId }],
             },
           },
         },
         {
           $project: {
             hasVoteUp: {
-              $in: [{ $toObjectId: userld }, '$upVotes'],
+              $in: [{ $toObjectId: userId }, '$upVotes'],
             },
             hasDownVotes: {
-              $in: [{ $toObjectId: userld }, '$downVotes'],
+              $in: [{ $toObjectId: userId }, '$downVotes'],
             },
           },
         },
@@ -182,9 +166,9 @@ export class CommentsService {
       if (objVoteUser && objVoteUser[0].hasVoteUp) {
         return await this.removeVotesUp(objectAdd);
       } else {
-        let user: any = await this.userModel.findOne({ _id: userld });
+        let user: any = await this.userModel.findOne({ _id: userId });
         return await this.commentModel.findByIdAndUpdate(
-          { _id: commentld },
+          { _id: commentId },
           { $push: { upVotes: user } },
           { upsert: true, new: true },
         );
@@ -196,10 +180,10 @@ export class CommentsService {
 
   async removeVotesUp(objectAdd: any) {
     try {
-      const { commentld, userld } = objectAdd;
+      const { commentId, userId } = objectAdd;
       return await this.commentModel.findByIdAndUpdate(
-        { _id: commentld },
-        { $pull: { upVotes: userld } },
+        { _id: commentId },
+        { $pull: { upVotes: userId } },
         { upsert: true, new: true },
       );
     } catch (e) {
@@ -209,22 +193,22 @@ export class CommentsService {
 
   async addDownVotes(objectAdd: any) {
     try {
-      const { commentld, userld } = objectAdd;
+      const { commentId, userId } = objectAdd;
       let objVoteUser = await this.commentModel.aggregate([
         {
           $match: {
             $expr: {
-              $eq: ['$_id', { $toObjectId: commentld }],
+              $eq: ['$_id', { $toObjectId: commentId }],
             },
           },
         },
         {
           $project: {
             hasVoteUp: {
-              $in: [{ $toObjectId: userld }, '$upVotes'],
+              $in: [{ $toObjectId: userId }, '$upVotes'],
             },
             hasDownVotes: {
-              $in: [{ $toObjectId: userld }, '$downVotes'],
+              $in: [{ $toObjectId: userId }, '$downVotes'],
             },
           },
         },
@@ -235,9 +219,9 @@ export class CommentsService {
       if (objVoteUser && objVoteUser[0].hasDownVotes) {
         return await this.removeDownVotes(objectAdd);
       } else {
-        let user: any = await this.userModel.findOne({ _id: userld });
+        let user: any = await this.userModel.findOne({ _id: userId });
         return await this.commentModel.findByIdAndUpdate(
-          { _id: commentld },
+          { _id: commentId },
           { $push: { downVotes: user } },
           { upsert: true, new: true },
         );
@@ -249,11 +233,11 @@ export class CommentsService {
 
   async removeDownVotes(objectAdd: any) {
     try {
-      const { commentld, userld } = objectAdd;
-      let user: any = await this.userModel.findOne({ _id: userld });
+      const { commentId, userId } = objectAdd;
+      let user: any = await this.userModel.findOne({ _id: userId });
       console.log(user);
       return await this.commentModel.findByIdAndUpdate(
-        { _id: commentld },
+        { _id: commentId },
         { $pull: { downVotes: user._id } },
         { upsert: true, new: true },
       );

@@ -30,7 +30,7 @@ export class PostMD{
     @AutoMap()
     topic: String;
 
-    @prop({ required: [false,'userld is required'], ref: () => User, default: null })
+    @prop({ required: [false,'userId is required'], ref: () => User, default: null })
     @AutoMap()
     userId: Ref<User>;
 

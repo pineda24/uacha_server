@@ -11,9 +11,9 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Post('login')
-  login(@Body() objectId: any) {
-    return this.usersService.login(objectId);
+  @Get('login/:userName')
+  login(@Param('userName') userName: string) {
+    return this.usersService.login(userName);
   }
 
   @Get()
@@ -21,9 +21,9 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  @Get(':userName')
+  findOne(@Param('userName') userName: string) {
+    return this.usersService.findOne(userName);
   }
 
   @Get('userName/:userName')

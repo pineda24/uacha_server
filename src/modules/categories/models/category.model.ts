@@ -6,10 +6,6 @@ export class Category{
     @AutoMap()
     title: String;
 
-    @prop({ required: [true,'description is required'] })
-    @AutoMap()
-    description: String;
-
     @prop({ required: [false,'tags is required'], default: [] })
     @AutoMap()
     topics: Array<String>[];

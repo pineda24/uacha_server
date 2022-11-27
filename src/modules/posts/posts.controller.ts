@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Patch } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import {PostMD} from './models/post.model';
 
@@ -41,6 +41,11 @@ export class PostsController {
     return this.postsService.removeDownVotes(objectTagPost);
   }
 
+  @Get('user/:userId')
+  findAllByUser(@Param('userId') userId: string) {
+    return this.postsService.findAllByUser(userId);
+  }
+
   @Get(':category/:topic')
   findAll(@Param('category') category: string, @Param('topic') topic: string) {
     return this.postsService.findAll(category, topic);
@@ -51,18 +56,13 @@ export class PostsController {
     return this.postsService.findOne(id);
   }
 
-  @Post(':id')
-  findByUserOne(@Param('id') id: string, @Body() obj: any) {
-    return this.postsService.findByUserOne(id, obj);
+  @Patch(':postId')
+  updatePost(@Param('postId') postId: string, @Body() post: any) {
+    return this.postsService.updatePost(postId, post);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: PostMD) {
-    return this.postsService.update(+id, updatePostDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postsService.remove(+id);
+  @Delete(':postId')
+  deletePost(@Param('postId') postId: string) {
+    return this.postsService.deletePost(postId);
   }
 }

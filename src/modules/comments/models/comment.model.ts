@@ -16,25 +16,21 @@ export class Comment{
     @AutoMap()
     date: Date;
 
-    // @prop({ required: [true,'votes is required'], validate: /^[0-9]*$/, default:0 })
-    // @AutoMap()
-    // votes: number;
-
-    @prop({ required: [true,'postld is required'], ref: () => PostMD, default:null })
+    @prop({ required: [false, 'postId is required'], ref: () => PostMD, default: null })
     @AutoMap()
-    postld: Ref<PostMD>;
+    postId: Ref<PostMD>;
 
-    @prop({ required: [false,'commentFather is required'], ref: () => Comment, default:null })
+    @prop({ required: [false,'commentFather is required'], ref: () => Comment, default: null })
     @AutoMap()
-    commentFather: Ref<Comment>;
+    commentId: Ref<Comment>;
 
     // @prop({ required: [false,'comments is required'], ref: () => Comment, default:[] })
     // @AutoMap()
     // comments: Ref<Comment>[];
 
-    @prop({ required: [true,'userld is required'], ref: () => User, default: null })
+    @prop({ required: [true,'userId is required'], ref: () => User, default: null })
     @AutoMap()
-    userld: Ref<User>;
+    userId: Ref<User>;
 
     @prop({ required: [false,'upVotes is required'], ref: () => User, default: [] })
     @AutoMap()

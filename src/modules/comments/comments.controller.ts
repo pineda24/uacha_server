@@ -46,9 +46,9 @@ export class CommentsController {
     return this.commentsService.removeDownVotes(objectTagPost);
   }
 
-  @Get('findbyPostId/:id')
-  findbyPostId(@Param('id') id: string) {
-    return this.commentsService.findbyPostId(id);
+  @Get('findByPostId/:id')
+  findByPostId(@Param('id') id: string) {
+    return this.commentsService.findByPostId(id);
   }
 
   @Get(':id')
