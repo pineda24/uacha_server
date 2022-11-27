@@ -4,6 +4,7 @@ import { ReturnModelType } from '@typegoose/typegoose';
 import { Tag } from '../tags/models/tag.model';
 import { PostMD } from './models/post.model';
 import { User } from '../users/models/users.model';
+import { Comment } from '../comments/models/comment.model';
 import { TagsService } from '../tags/tags.service';
 import mongoose from 'mongoose';
 const ObjectId = mongoose.Types.ObjectId;
@@ -17,6 +18,8 @@ export class PostsService {
     private tagsModel: ReturnModelType<typeof Tag>,
     @InjectModel(User.name)
     private userModel: ReturnModelType<typeof User>,
+    @InjectModel(Comment.name)
+    private commentsModel: ReturnModelType<typeof Comment>,
     private tagService: TagsService,
   ) {}
 
@@ -91,7 +94,7 @@ export class PostsService {
     try {
       return await this.postModel.aggregate([
         {
-          $match: {'userId': new ObjectId(userId)},
+          $match: { userId: new ObjectId(userId) },
         },
         {
           $lookup: {
@@ -116,13 +119,13 @@ export class PostsService {
             content: 1,
             date: 1,
             multimedia: 1,
-            "category.title": 1,
+            'category.title': 1,
             topic: 1,
             tags: {
               $setUnion: '$tags.description',
             },
-          }
-        }
+          },
+        },
       ]);
     } catch (e) {
       throw new InternalServerErrorException(e);
@@ -133,10 +136,9 @@ export class PostsService {
     try {
       return await this.postModel.aggregate([
         {
-          $match: {$and: [
-            {'categoryId': new ObjectId(category)},
-            {'topic': topic}
-          ]},
+          $match: {
+            $and: [{ categoryId: new ObjectId(category) }, { topic: topic }],
+          },
         },
         {
           $lookup: {
@@ -161,14 +163,79 @@ export class PostsService {
             content: 1,
             date: 1,
             multimedia: 1,
-            "category.title": 1,
+            'category.title': 1,
             topic: 1,
             tags: {
               $setUnion: '$tags.description',
             },
-          }
-        }
+          },
+        },
       ]);
+    } catch (e) {
+      throw new InternalServerErrorException(e);
+    }
+  }
+
+  async findAllWithTags(category: string, topic: string, arrayTags: any) {
+    try {
+      let tagsObjId = [];
+      for (let i = 0; i < arrayTags.tags.length; i++) {
+        tagsObjId.push(new ObjectId(arrayTags.tags[i]._id));
+      }
+      let objAggr: any = [
+        {
+          $match: {
+            $and: [{ categoryId: new ObjectId(category) }, { topic: topic }],
+          },
+        },
+        {
+          $lookup: {
+            from: 'tags',
+            localField: 'tags',
+            foreignField: '_id',
+            as: 'tags',
+          },
+        },
+      ];
+      // Si manda varios Tags
+      if (tagsObjId.length > 0) {
+        objAggr.push({
+          $match: {
+            tags: {
+              $elemMatch: {
+                _id: {
+                  $in: tagsObjId,
+                },
+              },
+            },
+          },
+        });
+      }
+      objAggr.push(
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'category',
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            title: 1,
+            content: 1,
+            date: 1,
+            multimedia: 1,
+            'category.title': 1,
+            topic: 1,
+            tags: {
+              $setUnion: '$tags.description',
+            },
+          },
+        },
+      );
+      return await this.postModel.aggregate(objAggr);
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -178,7 +245,7 @@ export class PostsService {
     try {
       return await this.postModel.aggregate([
         {
-          $match: {'_id': new ObjectId(id)},
+          $match: { _id: new ObjectId(id) },
         },
         {
           $lookup: {
@@ -335,20 +402,20 @@ export class PostsService {
     try {
       const tags = await this.tagsModel.aggregate([
         {
-          $match: { "description": { "$in": post.tags } }
+          $match: { description: { $in: post.tags } },
         },
         {
           $project: {
-            _id: 1
-          } 
-        }
-      ])
+            _id: 1,
+          },
+        },
+      ]);
       post.tags = [];
-      tags.forEach(element => {
+      tags.forEach((element) => {
         post.tags.push(element._id);
       });
       return await this.postModel
-        .findOneAndUpdate({_id: postId}, {$set: post})
+        .findOneAndUpdate({ _id: postId }, { $set: post })
         .then((res) => {
           return res;
         })
@@ -362,7 +429,9 @@ export class PostsService {
 
   async deletePost(postId: string) {
     try {
-      return await this.postModel.deleteOne({_id: postId});
+      // Borramos los comentarios con el post asociado
+      await this.commentsModel.remove({postId: postId});
+      return await this.postModel.deleteOne({ _id: postId });
     } catch (e) {
       throw new InternalServerErrorException(e);
     }

@@ -7,6 +7,7 @@ import { Tag } from '../tags/models/tag.model';
 import { CommentsModule } from '../comments/comments.module';
 import { User } from '../users/models/users.model';
 import { TagsModule } from '../tags/tags.module';
+import { Comment } from '../comments/models/comment.model';
 
 @Module({
   imports:[
@@ -18,6 +19,9 @@ import { TagsModule } from '../tags/tags.module';
     ]),
     MongooseModule.forFeature([
       { name: User.modelName, schema: User.model.schema },
+    ]),
+    MongooseModule.forFeature([
+      { name: Comment.modelName, schema: Comment.model.schema },
     ]),
     CommentsModule,
     TagsModule

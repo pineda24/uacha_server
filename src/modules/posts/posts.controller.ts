@@ -51,6 +51,11 @@ export class PostsController {
     return this.postsService.findAll(category, topic);
   }
 
+  @Post('filterTags/:category/:topic')
+  findAllWithTags(@Param('category') category: string, @Param('topic') topic: string,@Body() objectTagPost: any) {
+    return this.postsService.findAllWithTags(category, topic,objectTagPost);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(id);
