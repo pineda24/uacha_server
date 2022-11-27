@@ -92,6 +92,28 @@ export class TagsService {
     return `This action updates a #${id} tag`;
   }
 
+  async removeNotReferenced() {
+    const referenced = await this.tagsModel.aggregate([
+      {
+        $lookup: {
+          from: 'postmds',
+          localField: '_id',
+          foreignField: 'tags',
+          as: 'tags',
+        },
+      },
+      {
+        $unwind: '$tags',
+      },
+      {
+        $project: {
+          _id: 1,
+        },
+      },
+    ]);
+    return await this.tagsModel.deleteMany({_id: {$nin: referenced}});
+  }
+
   remove(id: number) {
     return `This action removes a #${id} tag`;
   }

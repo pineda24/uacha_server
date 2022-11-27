@@ -32,6 +32,11 @@ export class TagsController {
     return this.tagsService.update(+id, updateTagDto);
   }
 
+  @Delete()
+  removeNotReferenced() {
+    return this.tagsService.removeNotReferenced();
+  }
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.tagsService.remove(+id);

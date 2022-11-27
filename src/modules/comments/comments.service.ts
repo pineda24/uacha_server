@@ -235,7 +235,6 @@ export class CommentsService {
     try {
       const { commentId, userId } = objectAdd;
       let user: any = await this.userModel.findOne({ _id: userId });
-      console.log(user);
       return await this.commentModel.findByIdAndUpdate(
         { _id: commentId },
         { $pull: { downVotes: user._id } },
