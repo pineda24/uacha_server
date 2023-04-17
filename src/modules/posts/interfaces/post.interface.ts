@@ -1,6 +1,7 @@
+import { Document } from "mongoose";
 import mongoose from "mongoose";
 
-export class CreatePostDto {
+export interface Post extends Document {
     readonly title: string;
     readonly content: string;
     readonly date: Date;

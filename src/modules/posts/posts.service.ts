@@ -1,39 +1,33 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ReturnModelType } from '@typegoose/typegoose';
-import { Tag } from '../tags/models/tag.model';
-import { PostMD } from './models/post.model';
-import { User } from '../users/models/users.model';
-import { Comment } from '../comments/models/comment.model';
+import mongoose, { Model } from 'mongoose';
+import { Post } from './interfaces/post.interface';
+import { CreatePostDto } from './dto/create-post.dto';
 import { TagsService } from '../tags/tags.service';
-import mongoose from 'mongoose';
+import { User } from '../users/interfaces/user.interface';
+import { Comment } from '../comments/interfaces/comment.interface';
+import { Tag } from '../tags/interfaces/tag.interface';
+
 const ObjectId = mongoose.Types.ObjectId;
 
 @Injectable()
 export class PostsService {
   constructor(
-    @InjectModel(PostMD.name)
-    private postModel: ReturnModelType<typeof PostMD>,
-    @InjectModel(Tag.name)
-    private tagsModel: ReturnModelType<typeof Tag>,
-    @InjectModel(User.name)
-    private userModel: ReturnModelType<typeof User>,
-    @InjectModel(Comment.name)
-    private commentsModel: ReturnModelType<typeof Comment>,
+    @InjectModel('Post')
+    private readonly postModel: Model<Post>,
+    @InjectModel('Tag')
+    private readonly tagsModel: Model<Tag>,
+    @InjectModel('User')
+    private readonly userModel: Model<User>,
+    @InjectModel('Comment')
+    private readonly commentModel: Model<Comment>,
     private tagService: TagsService,
   ) {}
 
-  async create(createPostDto: PostMD) {
+  async create(createPostDto: CreatePostDto) {
     try {
-      const createPost = new this.postModel(createPostDto);
-      return await createPost
-        .save()
-        .then((res) => {
-          return res;
-        })
-        .catch((err) => {
-          return err;
-        });
+      const post = new this.postModel(createPostDto);
+      return await post.save();
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -430,7 +424,7 @@ export class PostsService {
   async deletePost(postId: string) {
     try {
       // Borramos los comentarios con el post asociado
-      await this.commentsModel.remove({postId: postId});
+      await this.commentModel.remove({ postId: postId });
       return await this.postModel.deleteOne({ _id: postId });
     } catch (e) {
       throw new InternalServerErrorException(e);

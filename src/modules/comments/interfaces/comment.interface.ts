@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 
-export class CreateCommentDto {
+export interface Comment extends Document {
     readonly content: string;
     readonly date: Date;
     readonly postId: mongoose.Schema.Types.ObjectId;

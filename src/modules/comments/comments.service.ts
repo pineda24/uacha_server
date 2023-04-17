@@ -1,25 +1,23 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ReturnModelType } from '@typegoose/typegoose';
-import { User } from '../users/models/users.model';
-import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { Comment } from './models/comment.model';
+import { Model } from 'mongoose';
+import { Comment } from './interfaces/comment.interface';
+import { CreateCommentDto } from './dto/create-comment.dto';
 
 @Injectable()
 export class CommentsService {
   constructor(
-    @InjectModel(Comment.name)
-    private commentModel: ReturnModelType<typeof Comment>,
-    @InjectModel(User.name)
-    private userModel: ReturnModelType<typeof User>,
+    @InjectModel('Comment')
+    private readonly commentModel: Model<Comment>,
+    @InjectModel('User')
+    private readonly userModel: Model<Comment>,
   ) {}
 
-  async create(createCommentDto: Comment) {
+  async create(createCommentDto: CreateCommentDto) {
     try {
-      const createUser = new this.commentModel(createCommentDto);
-      let userCreated = await createUser.save();
-      return userCreated;
+      const user = new this.commentModel(createCommentDto);
+      return await user.save();
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -54,8 +52,8 @@ export class CommentsService {
         {
           $unwind: {
             path: '$comments',
-            preserveNullAndEmptyArrays: true
-          }
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $lookup: {
@@ -68,8 +66,8 @@ export class CommentsService {
         {
           $unwind: {
             path: '$comments.user',
-            preserveNullAndEmptyArrays: true
-          }
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $project: {
@@ -92,17 +90,17 @@ export class CommentsService {
         {
           $group: {
             _id: '$_id',
-            content: { "$first": "$content" },
-            date: { "$first": "$date" },
-            postId: { "$first": "$postId" },
-            upVotes: { "$first": "$upVotes" },
-            downVotes: { "$first": "$downVotes" },
-            hasVoteUp: { "$first": "$hasVoteUp" },
-            hasDownVotes: { "$first": "$hasDownVotes" },
-            user: { "$first": "$user" },
-            comments: {$push: '$comments'}
-          }
-        }
+            content: { $first: '$content' },
+            date: { $first: '$date' },
+            postId: { $first: '$postId' },
+            upVotes: { $first: '$upVotes' },
+            downVotes: { $first: '$downVotes' },
+            hasVoteUp: { $first: '$hasVoteUp' },
+            hasDownVotes: { $first: '$hasDownVotes' },
+            user: { $first: '$user' },
+            comments: { $push: '$comments' },
+          },
+        },
       ]);
       return commentList;
     } catch (e) {

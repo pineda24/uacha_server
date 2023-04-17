@@ -1,14 +1,15 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, Patch, UseGuards } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import {PostMD} from './models/post.model';
+import { CreatePostDto } from './dto/create-post.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-
+@UseGuards(JwtAuthGuard)
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Post()
-  create(@Body() createPostDto: PostMD) {
+  create(@Body() createPostDto: CreatePostDto) {
     return this.postsService.create(createPostDto);
   }
 
@@ -62,8 +63,8 @@ export class PostsController {
   }
 
   @Patch(':postId')
-  updatePost(@Param('postId') postId: string, @Body() post: any) {
-    return this.postsService.updatePost(postId, post);
+  updatePost(@Param('postId') postId: string, @Body() updatePostDto: any) {
+    return this.postsService.updatePost(postId, updatePostDto);
   }
 
   @Delete(':postId')

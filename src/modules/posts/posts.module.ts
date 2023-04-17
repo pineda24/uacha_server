@@ -2,32 +2,28 @@ import { Module } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { PostsController } from './posts.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PostMD } from './models/post.model';
-import { Tag } from '../tags/models/tag.model';
-import { CommentsModule } from '../comments/comments.module';
-import { User } from '../users/models/users.model';
-import { TagsModule } from '../tags/tags.module';
-import { Comment } from '../comments/models/comment.model';
+import { PostSchema } from './schemas/post.schema';
+import { TagSchema } from '../tags/schemas/tag.schema';
+import { CommentSchema } from '../comments/schemas/comment.schema';
+import { UserSchema } from '../users/schemas/user.schema';
+import { TagsService } from '../tags/tags.service';
 
 @Module({
   imports:[
     MongooseModule.forFeature([
-      { name: PostMD.modelName, schema: PostMD.model.schema },
+      { name: 'Post', schema: PostSchema },
     ]),
     MongooseModule.forFeature([
-      { name: Tag.modelName, schema: Tag.model.schema },
+      { name: 'Comment', schema: CommentSchema },
     ]),
     MongooseModule.forFeature([
-      { name: User.modelName, schema: User.model.schema },
+      { name: 'Tag', schema: TagSchema },
     ]),
     MongooseModule.forFeature([
-      { name: Comment.modelName, schema: Comment.model.schema },
-    ]),
-    CommentsModule,
-    TagsModule
+      { name: 'User', schema: UserSchema },
+    ])
   ],
   controllers: [PostsController],
-  providers: [PostsService],
-  // exports: [PostsService],
+  providers: [PostsService, TagsService],
 })
 export class PostsModule {}

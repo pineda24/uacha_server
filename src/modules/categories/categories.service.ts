@@ -1,22 +1,24 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ReturnModelType } from '@typegoose/typegoose';
-import { Category } from './models/category.model';
-import { PostMD } from '../posts/models/post.model';
+import { Model } from 'mongoose';
+import { Post } from '../posts/interfaces/post.interface';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Category } from './interfaces/category.interface';
 
 @Injectable()
 export class CategoriesService {
   constructor(
-    @InjectModel(Category.name)
-    private categoryModel: ReturnModelType<typeof Category>,
-    @InjectModel(PostMD.name)
-    private postModel: ReturnModelType<typeof PostMD>,
+    @InjectModel('Category')
+    private categoryModel: Model<Category>,
+    @InjectModel('Post')
+    private postModel: Model<Post>,
   ) {}
 
-  async create(createCategoryDto: Category) {
+  async create(createCategoryDto: CreateCategoryDto) {
     try {
-      const createCategory = new this.categoryModel(createCategoryDto);
-      return await createCategory.save();
+      const category = new this.categoryModel(createCategoryDto);
+      return await category.save();
     } catch (e) {
       throw new InternalServerErrorException(e);
     }
@@ -38,7 +40,7 @@ export class CategoriesService {
     }
   }
 
-  async update(categoryId: string, category: any) {
+  async update(categoryId: string, category: UpdateCategoryDto) {
     try {
       return await this.categoryModel.findOneAndUpdate({_id: categoryId}, {$set: category});
     } catch (e) {

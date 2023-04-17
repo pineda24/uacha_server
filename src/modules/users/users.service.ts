@@ -1,27 +1,21 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { ReturnModelType } from '@typegoose/typegoose';
-import { User } from './models/users.model';
+import { Model } from 'mongoose';
+import { User } from './interfaces/user.interface';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
 
   constructor(
-    @InjectModel(User.name)
-    private userModel: ReturnModelType<typeof User>,
+    @InjectModel('User')
+    private readonly userModel: Model<User>,
   ) {}
 
-  async create(createUserDto: User) {
+  async create(createUserDto: CreateUserDto) {
     try {
-      const createUser = new this.userModel(createUserDto);
-      return await createUser
-        .save()
-        .then((res) => {
-          return res;
-        })
-        .catch((err) => {
-          return err;
-        });
+      const user = new this.userModel(createUserDto);
+      return await user.save();
     } catch (e) {
       throw new InternalServerErrorException(e);
     }

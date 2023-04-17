@@ -2,17 +2,17 @@ import { Module } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CommentsController } from './comments.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import {Comment} from './models/comment.model';
-import { User } from '../users/models/users.model';
+import { CommentSchema} from './schemas/comment.schema';
+import { UserSchema } from '../users/schemas/user.schema';
 
 @Module({
   imports:[
     MongooseModule.forFeature([
-      { name: Comment.modelName, schema: Comment.model.schema },
+      { name: 'Comment', schema: CommentSchema },
     ]),
     MongooseModule.forFeature([
-      { name: User.modelName, schema: User.model.schema },
-    ]),
+      { name: 'User', schema: UserSchema },
+    ])
   ],
   controllers: [CommentsController],
   providers: [CommentsService],

@@ -2,19 +2,15 @@ import { Module } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CategoriesController } from './categories.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Category } from './models/category.model';
-import { PostMD } from '../posts/models/post.model';
+import { CategorySchema } from './schemas/category.schema';
+import { PostSchema } from '../posts/schemas/post.schema';
 
 @Module({
-  imports:[
-    MongooseModule.forFeature([
-      { name: Category.modelName, schema: Category.model.schema },
-    ]),
-    MongooseModule.forFeature([
-      { name: PostMD.modelName, schema: PostMD.model.schema },
-    ]),
+  imports: [
+    MongooseModule.forFeature([{ name: 'Category', schema: CategorySchema }]),
+    MongooseModule.forFeature([{ name: 'Post', schema: PostSchema }]),
   ],
   controllers: [CategoriesController],
-  providers: [CategoriesService]
+  providers: [CategoriesService],
 })
 export class CategoriesModule {}
