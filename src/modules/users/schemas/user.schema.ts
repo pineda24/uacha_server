@@ -20,6 +20,9 @@ export class User {
     @Prop({ required: [true, 'Description is required'] })
     description: string;
 
+    @Prop({ required: [true, 'Role is required'] })
+    role: string;
+
     @Prop({ required: [true, 'Username is required'], unique: true })
     userName: string;
 

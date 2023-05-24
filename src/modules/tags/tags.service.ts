@@ -32,7 +32,7 @@ export class TagsService {
       let popular =  await this.tagsModel.aggregate([
         {
           $lookup: {
-            from: 'postmds',
+            from: 'posts',
             localField: '_id',
             foreignField: 'tags',
             as: 'total',

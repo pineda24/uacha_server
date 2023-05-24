@@ -51,7 +51,7 @@ export class PostsService {
         {
           $project: {
             tag: {
-              $in: [{ $toObjectId: tag._id }, '$tags'],
+              $in: [{ $toObjectId: tag._id }, { $ifNull: ['$tags', []] }],
             },
           },
         },
@@ -229,7 +229,8 @@ export class PostsService {
           },
         },
       );
-      return await this.postModel.aggregate(objAggr);
+      const result = await this.postModel.aggregate(objAggr);
+      return result;
     } catch (e) {
       throw new InternalServerErrorException(e);
     }

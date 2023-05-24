@@ -259,7 +259,7 @@ export class CommentsService {
     return `This action updates a #${id} comment`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} comment`;
+  remove(id: string) {
+    this.commentModel.deleteOne({ _id: id }).exec();
   }
 }

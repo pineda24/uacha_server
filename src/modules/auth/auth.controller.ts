@@ -6,7 +6,6 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post('/register')
   registerUser(@Body() registerAuthDto: any) {
     return this.authService.registerUser(registerAuthDto);

@@ -18,7 +18,9 @@ export class AuthService {
   async registerUser(registerAuthDto: RegisterAuthDto) {
     // Generamos un hash de la contraseña antes de almacenar el usuario
     const { password } = registerAuthDto;
+    console.log(password);
     const plainToHash = await hash(password, 10);
+    console.log(plainToHash);
     registerAuthDto = { ...registerAuthDto, password: plainToHash };
     return await this.userModel.create(registerAuthDto);
   }
@@ -30,6 +32,7 @@ export class AuthService {
     if (!user) throw new HttpException('User not found', 404);
     // Revisamos si la contraseña es correcta
     const checkPassword = await compare(password, user.password);
+    console.log(checkPassword);
     if (!checkPassword) throw new HttpException('Incorrect password', 403);
 
     // Generamos el token

@@ -16,5 +16,8 @@ export class RegisterAuthDto extends PartialType(LoginAuthDto) {
     readonly description: string;
 
     @IsNotEmpty()
+    readonly role: string;
+
+    @IsNotEmpty()
     readonly userName: string;
 }
